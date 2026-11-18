@@ -1,0 +1,334 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Astrokartographie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Symbols&family=Noto+Serif+SC:wght@500&display=swap">
+<style>
+/* Layout: Sternwarten-Atlas. Kopfzeile mit Navigation, Eingabekarte, darunter Ergebnis-Sektionen wie Kartenblätter in einer Mappe. */
+:root {
+  --bg: #f3f4f8;
+  --paper: #ffffff;
+  --ink: #1a2040;
+  --ink-2: #4a5175;
+  --ink-3: #7a809e;
+  --rule: #d9dce8;
+  --brass: #9a6b1f;
+  --brass-soft: #f2e7d2;
+  --night: #1a2040;
+  --good: #2f7d5b;
+  --mid: #b08326;
+  --low: #b3473a;
+  --good-soft: #dcefe5;
+  --low-soft: #f6e0dc;
+  --land: #e3e6ef;
+  --sea: #f8f9fc;
+  --f-display: "Marcellus", "Cormorant Garamond", Georgia, serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --f-sym: "Noto Sans Symbols", "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  --f-han: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --pl-Sun: #c98a10; --pl-Moon: #6f7c96; --pl-Mercury: #2b8a8a; --pl-Venus: #c2457a; --pl-Mars: #c8372d;
+  --pl-Jupiter: #6a4bc4; --pl-Saturn: #6b5a3a; --pl-Uranus: #1f7fc4; --pl-Neptune: #2f55a8; --pl-Pluto: #7a2f5a; --pl-Node: #5b8a3a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1126; --paper: #151a35; --ink: #e8e9f3; --ink-2: #b4b8d2; --ink-3: #8a8fae; --rule: #2a3156;
+    --brass: #dcb36a; --brass-soft: #2e2a2a; --night: #0a0d1f; --good: #5cc292; --mid: #e0b45a; --low: #ec7a6b;
+    --good-soft: #17352c; --low-soft: #3a1f22; --land: #263058; --sea: #121733;
+    --pl-Sun: #f0b43a; --pl-Moon: #b5bfd6; --pl-Mercury: #4cc6c6; --pl-Venus: #f07aa8; --pl-Mars: #ff6b5c;
+    --pl-Jupiter: #a68cff; --pl-Saturn: #c9b48a; --pl-Uranus: #5cb6ff; --pl-Neptune: #7f9cff; --pl-Pluto: #d987b6; --pl-Node: #9bd170;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1126; --paper: #151a35; --ink: #e8e9f3; --ink-2: #b4b8d2; --ink-3: #8a8fae; --rule: #2a3156;
+  --brass: #dcb36a; --brass-soft: #2e2a2a; --night: #0a0d1f; --good: #5cc292; --mid: #e0b45a; --low: #ec7a6b;
+  --good-soft: #17352c; --low-soft: #3a1f22; --land: #263058; --sea: #121733;
+  --pl-Sun: #f0b43a; --pl-Moon: #b5bfd6; --pl-Mercury: #4cc6c6; --pl-Venus: #f07aa8; --pl-Mars: #ff6b5c;
+  --pl-Jupiter: #a68cff; --pl-Saturn: #c9b48a; --pl-Uranus: #5cb6ff; --pl-Neptune: #7f9cff; --pl-Pluto: #d987b6; --pl-Node: #9bd170;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.55; margin: 0; }
+.wrap { max-width: 1140px; margin: 0 auto; padding-inline: 20px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; margin: 0; letter-spacing: 0.01em; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); line-height: 1.05; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 1.15; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass); }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.875rem; }
+.sym { font-family: var(--f-sym); font-variant-emoji: text; }
+.han { font-family: var(--f-han); }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* Kopf */
+.top { background: var(--night); color: #e8e9f3; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; border-bottom: 1px solid rgba(220,179,106,0.35); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 58px; flex-wrap: wrap; padding-block: 6px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: 1.25rem; color: #f3e2bd; text-decoration: none; }
+.brand svg { flex: none; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a { color: #c9cce0; text-decoration: none; padding: 7px 14px; border-radius: 999px; font-weight: 600; font-size: 0.95rem; }
+.nav a:hover { color: #fff; background: rgba(255,255,255,0.07); }
+.nav a[aria-current="page"] { color: #1a2040; background: #dcb36a; }
+.nav a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+/* Eingabe */
+.intro { padding-block: 40px 28px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 36px; align-items: start; }
+.intro .lead { display: grid; gap: 14px; }
+.intro .lead p { color: var(--ink-2); max-width: 46ch; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font-size: 0.82rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); background: var(--paper); }
+form.birth { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 22px; display: grid; gap: 14px; box-shadow: 0 1px 0 var(--rule), 0 12px 30px -18px rgba(26,32,64,0.35); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field label { font-size: 0.8rem; font-weight: 700; color: var(--ink-2); letter-spacing: 0.02em; }
+.field input, .field select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; padding: 9px 11px; width: 100%; min-width: 0; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--ink-2); }
+details.coords summary { cursor: pointer; font-size: 0.875rem; color: var(--ink-2); }
+details.coords .grid2 { margin-top: 10px; }
+.actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 11px 20px; background: var(--brass); color: var(--paper); cursor: pointer; }
+.btn:hover { filter: brightness(1.07); }
+.cal-export { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+.place-info { font-size: 0.85rem; color: var(--ink-2); }
+.err { color: var(--low); font-weight: 600; font-size: 0.9rem; }
+.beta { background: var(--brass-soft); color: var(--ink); font-size: 0.88rem; border-bottom: 1px solid var(--rule); }
+.beta .wrap { padding-block: 8px; }
+.example-note { font-size: 0.8rem; background: var(--brass-soft); color: var(--ink); padding: 6px 10px; border-radius: 8px; }
+
+/* Sektionen */
+main { padding-bottom: 60px; }
+section.sheet { background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; padding: clamp(18px, 3vw, 32px); margin-top: 22px; display: grid; gap: 20px; min-width: 0; }
+.sheet-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
+.sheet-head > div { display: grid; gap: 6px; }
+
+/* Wochenüberblick */
+.week-top { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; }
+.scorebig { display: flex; align-items: baseline; gap: 10px; }
+.scorebig .n { font-family: var(--f-display); font-size: 4rem; line-height: 1; }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--ink-2); font-family: var(--f-body); font-size: 12px; }
+.chart .val { fill: var(--ink); font-family: var(--f-mono); font-size: 12px; font-weight: 600; }
+.chart .grid { stroke: var(--rule); stroke-width: 1; }
+.bar-good { fill: var(--good); } .bar-mid { fill: var(--mid); } .bar-low { fill: var(--low); }
+.meters { display: grid; gap: 10px; }
+.meter { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 2.6em; gap: 10px; align-items: center; font-size: 0.92rem; }
+.meter .track { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--rule); }
+.meter .fill { height: 100%; border-radius: 99px; }
+.optimal { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.opt { background: var(--paper); padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.opt .k { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+.opt .v { font-family: var(--f-display); font-size: 1.3rem; line-height: 1.2; }
+.opt .s { font-size: 0.82rem; color: var(--ink-2); }
+.swatch { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; margin-right: 6px; vertical-align: -0.05em; border: 1px solid var(--rule); }
+.prose { display: grid; gap: 12px; max-width: 72ch; }
+.prose p { color: var(--ink); }
+.sens-name { display: grid; gap: 2px; }
+.sens-name small { color: var(--ink-3); font-size: 0.78rem; }
+.sym-gold { font-family: var(--f-sym); color: var(--brass); font-weight: 600; }
+.prose p .lbl { font-weight: 700; color: var(--brass); }
+
+/* Tage */
+.days { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.day { display: grid; grid-template-columns: 8.5em 4.2em minmax(0, 1fr); gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--rule); align-items: start; }
+.day .when { display: grid; }
+.day .when b { font-family: var(--f-display); font-weight: 400; font-size: 1.15rem; }
+.badge { display: inline-grid; place-items: center; width: 3.2em; height: 3.2em; border-radius: 50%; font-family: var(--f-mono); font-weight: 600; }
+.badge.good { background: var(--good-soft); color: var(--good); } .badge.mid { background: var(--brass-soft); color: var(--mid); } .badge.low { background: var(--low-soft); color: var(--low); }
+.day .body { display: grid; gap: 6px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.78rem; padding: 2px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--rule); color: var(--ink-2); white-space: nowrap; }
+.chip.pos { border-color: var(--good); color: var(--good); } .chip.neg { border-color: var(--low); color: var(--low); }
+
+/* Radix */
+.chart-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.wheel { width: 100%; max-width: 560px; height: auto; justify-self: center; }
+.wheel .ring { fill: none; stroke: var(--ink-3); stroke-width: 1; }
+.wheel .ringfill { fill: var(--bg); stroke: var(--ink-3); stroke-width: 1; }
+.wheel .tick { stroke: var(--ink-3); stroke-width: 0.6; }
+.wheel .cusp { stroke: var(--ink-3); stroke-width: 0.8; }
+.wheel .axis { stroke: var(--brass); stroke-width: 1.8; }
+.wheel .sg { font-family: var(--f-sym); font-size: 17px; text-anchor: middle; dominant-baseline: central; }
+.wheel .hn { font-family: var(--f-mono); font-size: 10px; fill: var(--ink-3); text-anchor: middle; dominant-baseline: central; }
+.wheel .pg { font-family: var(--f-sym); font-size: 19px; text-anchor: middle; dominant-baseline: central; }
+.wheel .pd { font-family: var(--f-mono); font-size: 9px; fill: var(--ink-2); text-anchor: middle; dominant-baseline: central; }
+.wheel .sp { font-family: var(--f-sym); font-size: 12px; font-weight: 600; fill: var(--brass); text-anchor: middle; dominant-baseline: central; }
+.wheel .axl { font-family: var(--f-mono); font-size: 11px; font-weight: 600; fill: var(--brass); text-anchor: middle; dominant-baseline: central; }
+.asp-harm { stroke: var(--good); } .asp-tense { stroke: var(--low); } .asp-conj { stroke: var(--mid); }
+.el-Feuer { fill: var(--low); } .el-Erde { fill: var(--good); } .el-Luft { fill: var(--mid); } .el-Wasser { fill: var(--pl-Uranus); }
+.tbl-wrap { overflow-x: auto; min-width: 0; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+table.tbl th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+table.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.tbl td.num { white-space: nowrap; }
+.summary3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.big3 { border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; }
+.big3 .v { font-family: var(--f-display); font-size: 1.35rem; }
+.big3 .s { font-size: 0.88rem; color: var(--ink-2); }
+
+/* Chinesisch */
+.pillars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pillar { border: 1px solid var(--rule); border-radius: 12px; padding: 14px 10px; text-align: center; display: grid; gap: 6px; }
+.pillar .han { font-size: 2.2rem; line-height: 1.1; }
+.pillar.dm { border-color: var(--brass); background: var(--brass-soft); }
+.elbars { display: grid; gap: 8px; }
+
+/* Numerologie */
+.numgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.numcard { border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.numcard .n { font-family: var(--f-display); font-size: 2.4rem; line-height: 1; color: var(--brass); }
+
+/* Karte */
+.map-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 12px; background: var(--sea); }
+.map { display: block; width: 100%; min-width: 640px; height: auto; }
+.map .land { fill: var(--land); stroke: var(--ink-3); stroke-width: 0.15; }
+.map .grat { stroke: var(--rule); stroke-width: 0.25; fill: none; }
+.map .ln { fill: none; stroke-width: 0.9; }
+.map .ln.ic { stroke-dasharray: 2 1.4; }
+.map .ln.dsc { stroke-dasharray: 0.6 1; }
+.map .lbl { font-family: var(--f-sym); font-size: 4.2px; text-anchor: middle; }
+.map .home { fill: var(--brass); stroke: var(--paper); stroke-width: 0.5; }
+.map .place { fill: var(--ink); }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.toggle { font: inherit; font-size: 0.85rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.toggle[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-3); }
+.toggle[aria-pressed="false"] { opacity: 0.45; }
+.dot { width: 0.7em; height: 0.7em; border-radius: 50%; display: inline-block; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.82rem; color: var(--ink-2); }
+.legend svg { vertical-align: middle; margin-right: 6px; }
+.placelist { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.placecard { border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; display: grid; gap: 2px; align-content: start; }
+.linkbtn { font: inherit; font-size: 0.82rem; font-weight: 600; color: var(--brass); background: none; border: 0; padding: 4px 0 0; cursor: pointer; text-align: left; }
+.linkbtn:hover { text-decoration: underline; }
+.howto { display: grid; gap: 10px; max-width: 72ch; }
+.howto p { color: var(--ink); }
+.reloc { border: 1px solid var(--brass); border-radius: 14px; padding: clamp(14px, 2.5vw, 22px); display: grid; gap: 14px; background: var(--paper); }
+.reloc-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.reloc-form .field { flex: 1 1 180px; }
+.reloc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.reloc-card { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.reloc-card ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.9rem; }
+.map .cross { fill: none; stroke: var(--ink); stroke-width: 0.5; }
+@media (max-width: 860px) { .reloc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .reloc-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Langfrist */
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.seg button { font: inherit; font-weight: 600; border: 0; background: var(--paper); color: var(--ink-2); padding: 9px 16px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.months { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.month { border: 1px solid var(--rule); border-radius: 12px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.month-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.month ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.9rem; }
+.mini { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.mini div { display: grid; gap: 3px; font-size: 0.72rem; color: var(--ink-3); }
+.mini .track { height: 5px; border-radius: 9px; background: var(--bg); overflow: hidden; }
+.mini .fill { height: 100%; }
+.timeline text { font-family: var(--f-body); font-size: 12px; fill: var(--ink-2); }
+.timeline .rowlbl { fill: var(--ink); }
+.timeline .ex { fill: var(--ink); }
+.loading { padding: 30px; text-align: center; color: var(--ink-2); }
+footer { padding-block: 30px; color: var(--ink-3); font-size: 0.82rem; }
+footer .wrap { display: grid; gap: 6px; }
+
+@media (max-width: 860px) {
+  .intro, .week-top, .chart-grid { grid-template-columns: minmax(0, 1fr); }
+  .optimal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .wrap { padding-inline: 16px; }
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .day { grid-template-columns: 4.2em minmax(0, 1fr); }
+  .day .when { grid-column: 1 / -1; display: flex; gap: 8px; align-items: baseline; }
+  .meter { grid-template-columns: 7.5em minmax(0, 1fr) 2.4em; }
+  .mini { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fill, .bar-anim { transition: width .5s ease; }
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#woche">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="none" stroke="#dcb36a" stroke-width="1.2"/><ellipse cx="15" cy="15" rx="13" ry="5" fill="none" stroke="#dcb36a" stroke-width="0.8"/><line x1="15" y1="2" x2="15" y2="28" stroke="#dcb36a" stroke-width="0.8"/><circle cx="21" cy="11" r="2.2" fill="#dcb36a"/></svg>
+      Astrokartographie
+    </a>
+    <nav class="nav" aria-label="Seiten">
+      <a href="#woche" id="nav-woche">Wochenprognose</a>
+      <a href="#langfrist" id="nav-langfrist">Halbjahr &amp; Jahr</a>
+    </nav>
+  </div>
+</header>
+
+<div class="beta" role="note"><div class="wrap"><strong>Beta-Version zum Testen.</strong> Die Seite ist noch in Arbeit. Schick Davide deine Rückmeldung: Was ist unklar, was stimmt für dich, was nicht?</div></div>
+
+<main>
+  <div class="wrap">
+    <div class="intro">
+      <div class="lead">
+        <span class="eyebrow" id="intro-eyebrow">Seite 1 · Wochenprognose</span>
+        <h1 id="intro-title">Deine Woche aus vier Himmelsrichtungen</h1>
+        <p id="intro-text">Gib deine Geburtsdaten ein. Die Seite berechnet dein westliches Horoskop mit Placidus-Häusern, deine chinesischen vier Säulen, deine Lebenszahl und deine Planetenlinien auf der Weltkarte. Daraus entsteht eine Prognose für sieben Tage mit den besten Tagen, Farben, Zahlen und Orten.</p>
+        <div class="pills"><span class="pill">Westliche Astrologie</span><span class="pill">Chinesische Astrologie</span><span class="pill">Numerologie</span><span class="pill">Astrokartographie</span></div>
+      </div>
+      <form class="birth" id="birth-form" novalidate>
+        <div class="field"><label for="f-name">Name (optional, für die Namenszahlen)</label><input id="f-name" autocomplete="name" placeholder="Vorname Nachname"></div>
+        <div class="grid2">
+          <div class="field"><label for="f-date">Geburtsdatum</label><input id="f-date" type="date" required min="1800-01-01" max="2100-12-31"></div>
+          <div class="field"><label for="f-time">Geburtszeit (Ortszeit)</label><input id="f-time" type="time" required></div>
+        </div>
+        <label class="check"><input type="checkbox" id="f-notime"> Geburtszeit unbekannt (12:00 Uhr, ohne Häuser und Aszendent)</label>
+        <div class="grid2">
+          <div class="field"><label for="f-place">Geburtsort</label><input id="f-place" list="dl-places" required autocomplete="off" placeholder="z.B. Zürich"></div>
+          <div class="field"><label for="f-country">Land</label><input id="f-country" list="dl-countries" autocomplete="off" placeholder="z.B. Schweiz"></div>
+        </div>
+        <datalist id="dl-places"></datalist><datalist id="dl-countries"></datalist>
+        <details class="coords" id="coords">
+          <summary>Ort nicht in der Liste? Koordinaten selbst eingeben</summary>
+          <div class="grid2">
+            <div class="field"><label for="f-lat">Breite (Nord +, Süd −)</label><input id="f-lat" inputmode="decimal" placeholder="47.3769"></div>
+            <div class="field"><label for="f-lon">Länge (Ost +, West −)</label><input id="f-lon" inputmode="decimal" placeholder="8.5417"></div>
+          </div>
+        </details>
+        <div class="grid2" id="week-ctrl">
+          <div class="field"><label for="f-week">Woche ab</label><input id="f-week" type="date"></div>
+        </div>
+        <div class="actions">
+          <button class="btn" type="submit" id="f-submit">Prognose berechnen</button>
+          <span class="place-info" id="place-info"></span>
+        </div>
+        <div class="err" id="form-err" role="alert"></div>
+        <div class="example-note" id="example-note" hidden>Beispieldaten: Maria Muster, 15.06.1985, 14:30 Uhr, Zürich. Ersetze sie durch deine eigenen Angaben.</div>
+      </form>
+    </div>
+
+    <div id="page-woche"></div>
+    <div id="page-langfrist" hidden></div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Berechnung im Browser mit astronomy-engine (VSOP87/ELP). Tropischer Tierkreis, Placidus-Häuser, wahrer Mondknoten, wie in den Standardeinstellungen von astro-seek.com. Zum Vergleich eignet sich astroschmid.ch.</span>
+    <span>Prognosen sind astrologische Deutungen und ersetzen keine fachliche Beratung.</span>
+  </div>
+</footer>
+
+<script src="vendor/astronomy.min.js"></script>
+<script src="vendor/tz-lookup.js"></script>
+<script src="map-data.js"></script>
+<script src="cities.js"></script>
+<script src="texts.js"></script>
+<script src="astro-core.js"></script>
+<script src="forecast.js"></script>
+<script src="calendar.js"></script>
+<script src="app.js"></script>
