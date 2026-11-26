@@ -137,7 +137,7 @@
     // Transite über die sensitiven Punkte (Konjunktionen)
     const sensHits = [];
     if (P.sens) {
-      const SENS_KEYS = ['Fortuna', 'Spirit', 'Love', 'Marriage', 'Success', 'Career', 'Vertex'];
+      const SENS_KEYS = P.sens.list.map(s => s.key);
       const seen = new Set();
       days.forEach(d => {
         C.transitPositions(d.date).filter(t => ['Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'].includes(t.key)).forEach(t => {
@@ -176,7 +176,7 @@
     }
     const runs = {}; // laufende Transitperioden der langsamen Planeten
     const sensRuns = {}, sensPeriods = [];
-    const SENS_LONG = ['Fortuna', 'Spirit', 'Love', 'Marriage', 'Success', 'Career', 'Vertex'];
+    const SENS_LONG = P.sens ? P.sens.list.map(s => s.key) : [];
     const periods = [];
     const retro = { Mercury: null, Venus: null, Mars: null };
     const retroPeriods = [];

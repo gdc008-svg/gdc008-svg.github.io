@@ -112,7 +112,22 @@ window.TEXTS = {
     SNode: ['Was du mitbringst und loslassen darfst.', 'Der Südknoten steht dem Mondknoten gegenüber. Er zeigt vertraute Fähigkeiten und Gewohnheiten, auf denen du dich nicht ausruhen sollst.'],
     Lilith: ['Deine ungezähmte, eigenwillige Seite.', 'Lilith, der Schwarze Mond, zeigt, wo du dich nicht anpassen willst, wo Leidenschaft und Verweigerung liegen und wo du lernst, zu deiner Eigenart zu stehen.'],
     Vertex: ['Wo schicksalhafte Begegnungen geschehen.', 'Der Vertex gilt als Punkt der Fügung. Wird er durch Transite berührt, treten oft Menschen oder Ereignisse auf, die sich wie vorbestimmt anfühlen.'],
-    East: ['Wie du spontan auf andere wirkst.', 'Der Ostpunkt ist eine Art zweiter Aszendent. Er beschreibt, wie du dich zeigst, wenn du nicht nachdenkst, sondern einfach handelst.']
+    East: ['Wie du spontan auf andere wirkst.', 'Der Ostpunkt ist eine Art zweiter Aszendent. Er beschreibt, wie du dich zeigst, wenn du nicht nachdenkst, sondern einfach handelst.'],
+    Eros: ['Wo Begehren und Anziehung erwachen.', 'Der Erospunkt ist eines der sieben hermetischen Lose. Er zeigt, wonach du dich sehnst und was deine Leidenschaft weckt.'],
+    Necessity: ['Wo dich Pflichten und Umstände fordern.', 'Der Punkt der Notwendigkeit zeigt, wo du an Grenzen stösst, aber auch, wo du durch kluges Denken Zwänge überwindest.'],
+    Courage: ['Wo du Mut und Durchsetzung beweist.', 'Der Punkt des Mutes verbindet Glückspunkt und Mars. Er zeigt, wo du wagen darfst und wo Kühnheit belohnt wird.'],
+    Victory: ['Wo du gewinnst und Vertrauen erntest.', 'Der Siegespunkt verbindet Jupiter und Geistpunkt. Er zeigt, wo dein Glaube an eine Sache zu Erfolg und Unterstützung führt.'],
+    Nemesis: ['Wo alte Lasten auf Lösung warten.', 'Der Nemesispunkt verbindet Glückspunkt und Saturn. Er zeigt, wo Geduld gefragt ist und wo sich Versäumtes ausgleichen will.'],
+    Commerce: ['Wo Handel und Geschäfte gelingen.', 'Der Handelspunkt verbindet Glücks- und Geistpunkt. Er zeigt, wie du Ideen in Austausch und Einkommen verwandelst.'],
+    Exaltation: ['Wo du Ansehen und Anerkennung gewinnst.', 'Der Ruhmespunkt rechnet mit dem Erhöhungsgrad der Sonne. Er zeigt, wodurch du sichtbar wirst und Ehre erfährst.'],
+    Father: ['Was du vom Vater mitbekommen hast.', 'Der Vaterpunkt zeigt das Verhältnis zum Vater und zu Autorität und wie du selbst Verantwortung trägst.'],
+    Mother: ['Was du von der Mutter mitbekommen hast.', 'Der Mutterpunkt zeigt das Verhältnis zur Mutter, zu Geborgenheit und Fürsorge.'],
+    Siblings: ['Wie du mit Geschwistern und Nahestehenden verbunden bist.', 'Der Geschwisterpunkt zeigt Bindungen im nahen Umfeld, zu Geschwistern, Nachbarn und Kollegen.'],
+    Friends: ['Wo du Freunde und Gleichgesinnte findest.', 'Der Freundschaftspunkt verbindet Mond und Merkur. Er zeigt, wie Freundschaften entstehen und was sie dir geben.'],
+    Illness: ['Wo du auf deine Gesundheit achten sollst.', 'Der Gesundheitspunkt (klassisch Krankheitspunkt) zeigt, wo Überlastung entsteht und wodurch du dich stärkst.'],
+    Transform: ['Wo Enden und Neuanfänge geschehen.', 'Der Wandlungspunkt, klassisch Todespunkt genannt, zeigt keine Todesgefahr, sondern Abschlüsse, Krisen und tiefe Erneuerung.'],
+    Travel: ['Wohin dich Reisen und Horizonte führen.', 'Der Reisepunkt verbindet die Spitze des 9. Hauses mit ihrem Herrscher. Er zeigt, wann und wohin Reisen, Studium und Weite dich weiterbringen.'],
+    AntiVertex: ['Wie du von dir aus auf Begegnungen zugehst.', 'Der Antivertex liegt dem Vertex gegenüber. Er zeigt, was du selbst in schicksalhafte Begegnungen einbringst.']
   },
   monthTone: {
     hi: 'Ein starker Monat mit viel Rückenwind.', mid: 'Ein ausgeglichener Monat mit Licht und Schatten.', lo: 'Ein fordernder Monat, in dem Geduld und Planung zählen.'
