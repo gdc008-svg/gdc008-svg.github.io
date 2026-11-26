@@ -195,6 +195,30 @@
       { key: 'Vertex', name: 'Vertex', sym: 'Vx', lon: vertex, formula: 'westlicher Schnittpunkt Ekliptik / Erster Vertikal' },
       { key: 'East', name: 'Ostpunkt', sym: 'Ost', lon: east, formula: 'Aszendent am Äquator' }
     ];
+    // Weitere klassische Punkte (hermetische Lose nach Paulus Alexandrinus, Bonatti). Bei Nachtgeburt wird die Formel umgekehrt, wo üblich.
+    const fort = list[0].lon, spir = list[1].lon;
+    const lot = (a, b, aN, bN, rev = true) => (day || !rev) ? { lon: norm(asc + a - b), formula: `AC + ${aN} − ${bN}` } : { lon: norm(asc + b - a), formula: `AC + ${bN} − ${aN}` };
+    const RULER = ['Mars', 'Venus', 'Mercury', 'Moon', 'Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Saturn', 'Jupiter'];
+    const h9 = h.cusps[8], h8 = h.cusps[7], r9 = RULER[Math.floor(norm(h9) / 30)];
+    const r9name = { Mars: 'Mars', Venus: 'Venus', Mercury: 'Merkur', Moon: 'Mond', Sun: 'Sonne', Jupiter: 'Jupiter', Saturn: 'Saturn' }[r9];
+    const more = [
+      ['Eros', 'Erospunkt', '♥', lot(P.Venus.lon, spir, 'Venus', 'Geistpunkt')],
+      ['Necessity', 'Punkt der Notwendigkeit', 'N', lot(fort, P.Mercury.lon, 'Glückspunkt', 'Merkur')],
+      ['Courage', 'Punkt des Mutes', 'M', lot(fort, P.Mars.lon, 'Glückspunkt', 'Mars')],
+      ['Victory', 'Siegespunkt', 'S', lot(P.Jupiter.lon, spir, 'Jupiter', 'Geistpunkt')],
+      ['Nemesis', 'Nemesispunkt', 'Ne', lot(fort, P.Saturn.lon, 'Glückspunkt', 'Saturn')],
+      ['Commerce', 'Handelspunkt', '$', lot(fort, spir, 'Glückspunkt', 'Geistpunkt', false)],
+      ['Exaltation', 'Ruhmespunkt (Erhöhung)', '✦', day ? { lon: norm(asc + 19 - sun), formula: 'AC + 19° Widder − Sonne' } : { lon: norm(asc + 33 - moon), formula: 'AC + 3° Stier − Mond' }],
+      ['Father', 'Vaterpunkt', 'V', lot(P.Saturn.lon, sun, 'Saturn', 'Sonne')],
+      ['Mother', 'Mutterpunkt', 'Mu', lot(moon, P.Venus.lon, 'Mond', 'Venus')],
+      ['Siblings', 'Geschwisterpunkt', 'G', lot(P.Jupiter.lon, P.Saturn.lon, 'Jupiter', 'Saturn', false)],
+      ['Friends', 'Freundschaftspunkt', 'F', lot(moon, P.Mercury.lon, 'Mond', 'Merkur', false)],
+      ['Illness', 'Gesundheitspunkt', '+', lot(P.Mars.lon, P.Saturn.lon, 'Mars', 'Saturn')],
+      ['Transform', 'Wandlungspunkt (klassisch Todespunkt)', 'W', { lon: norm(asc + h8 - moon), formula: 'AC + Spitze 8. Haus − Mond' }],
+      ['Travel', 'Reisepunkt', 'R', { lon: norm(asc + h9 - P[r9].lon), formula: `AC + Spitze 9. Haus − ${r9name} (Herrscher 9. Haus)` }],
+      ['AntiVertex', 'Antivertex', 'AVx', { lon: norm(vertex + 180), formula: 'Vertex + 180°' }]
+    ];
+    more.forEach(([key, name, sym, v]) => list.push({ key, name, sym, lon: v.lon, formula: v.formula }));
     list.forEach(p => { p.pos = signOf(p.lon); p.house = houseOf(p.lon, h.cusps); p.near = natal.planets.filter(q => q.key !== 'Node' && Math.abs(norm180(q.lon - p.lon)) <= 3).map(q => q.name); });
     return { day, list, byKey: Object.fromEntries(list.map(p => [p.key, p])) };
   }

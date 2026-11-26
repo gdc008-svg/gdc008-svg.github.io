@@ -162,6 +162,11 @@ section.sheet { background: var(--paper); border: 1px solid var(--rule); border-
 .asp-harm { stroke: var(--good); } .asp-tense { stroke: var(--low); } .asp-conj { stroke: var(--mid); }
 .el-Feuer { fill: var(--low); } .el-Erde { fill: var(--good); } .el-Luft { fill: var(--mid); } .el-Wasser { fill: var(--pl-Uranus); }
 .tbl-wrap { overflow-x: auto; min-width: 0; }
+.tbl-scroll { max-height: 560px; overflow-y: auto; }
+.calbtns { white-space: nowrap; font-size: 0.85rem; }
+.timeplace { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 6px 0 8px; }
+.timeplace .field { min-width: 200px; flex: 1 1 220px; max-width: 320px; }
+details.more summary { cursor: pointer; margin: 10px 0 6px; font-size: 0.9rem; color: var(--ink-2); }
 table.tbl { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
 table.tbl th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
 table.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
@@ -330,5 +335,6 @@ footer .wrap { display: grid; gap: 6px; }
 <script src="texts.js"></script>
 <script src="astro-core.js"></script>
 <script src="forecast.js"></script>
+<script src="timing.js"></script>
 <script src="calendar.js"></script>
 <script src="app.js"></script>

@@ -428,6 +428,160 @@
     </section>`;
   }
 
+  /* ---------- Exakte Zeitpunkte ---------- */
+  const TM = () => window.Timing, CAL = () => window.CalendarExport;
+  const LASTS = { Moon: 'einige Stunden', Sun: 'etwa 1 bis 2 Tage', Mercury: 'etwa 1 bis 2 Tage', Venus: 'etwa 1 bis 2 Tage', Mars: 'etwa 2 bis 4 Tage', Jupiter: 'mehrere Wochen', Saturn: 'mehrere Wochen bis Monate', Uranus: 'mehrere Monate', Neptune: 'mehrere Monate', Pluto: 'mehrere Monate' };
+  const ANGLE_NAMES = { AC: 'Aszendent', MC: 'Himmelsmitte (MC)', DC: 'Deszendent', IC: 'Himmelstiefe (IC)' };
+  let timePlace = null; // Ort für die Tageszeiten (Achsen)
+  let evStore = {};    // Kalendereinträge der aktuellen Ansicht, nach Id
+  function natalTargets(P, keys) {
+    return P.natal.points.filter(p => p.key !== 'Node' && (!keys || keys.includes(p.key))).map(p => ({ key: p.key, name: p.name, sym: p.sym, lon: p.lon, w: p.w, kind: 'natal' }));
+  }
+  function sensTargets(P) {
+    return P.sens ? P.sens.list.filter(sp => sp.key !== 'AntiVertex').map(sp => ({ key: sp.key, name: sp.name, sym: sp.sym, lon: sp.lon, w: 1.5, kind: 'sens', sp })) : [];
+  }
+  function hitTitle(h) {
+    const sign = h.value >= 0 ? '+' : '–';
+    return `${sign} ${h.t.name} ${h.asp.name} ${h.n.kind === 'sens' ? h.n.name : 'Radix-' + h.n.name}${h.retro ? ' (rückläufig)' : ''}`;
+  }
+  function hitMeaning(h) {
+    if (h.n.kind === 'sens') {
+      const good = h.value >= 0;
+      return `${T.sensitive[h.n.key][0]} ${h.asp.key === 'conj' ? (good ? 'Der Planet läuft direkt über den Punkt und öffnet das Thema.' : 'Der Planet läuft direkt über den Punkt und fordert Arbeit an diesem Thema.') : good ? 'Das Thema wird harmonisch angeregt.' : 'Das Thema wird unter Spannung gesetzt.'}`;
+    }
+    return `${h.t.name} ${F.transitSentence({ t: h.t, n: h.n, asp: h.asp })}.`;
+  }
+  function hitEvent(h, f, tz) {
+    const id = `tr-${h.t.key}-${h.n.key}-${h.asp.key}-${h.when.getTime()}`;
+    const e = { id, start: h.when, end: new Date(h.when.getTime() + 30 * 60000), summary: hitTitle(h),
+      description: `Exakt am ${f.dateY(h.when)} um ${f.time(h.when)} Uhr (${tz}). Am stärksten zu diesem Zeitpunkt, spürbar ${LASTS[h.t.key]} davor und danach.\n${hitMeaning(h)}` };
+    evStore[id] = e; return e;
+  }
+  function angleEvent(a, f, tz, placeLabel, extra) {
+    const tg = a.target;
+    const id = `ax-${a.angle}-${tg.key}-${a.when.getTime()}-${Math.round(a.lat * 100)}`;
+    const e = { id, start: new Date(a.when.getTime() - 15 * 60000), end: new Date(a.when.getTime() + 15 * 60000),
+      summary: `${tg.line ? `${tg.city}: ${tg.name}-${tg.line}-Linie aktiv` : `${a.angle} über ${tg.name}`} · ${f.time(a.when)}`,
+      description: `Um ${f.time(a.when)} Uhr (${tz}) steht in ${placeLabel} der laufende ${ANGLE_NAMES[a.angle]} exakt auf ${tg.line ? 'deinem Radix-' + tg.name : 'deinem ' + tg.name} (${C.fmtDeg(tg.lon)} ${C.signOf(tg.lon).sign.name}). Am stärksten etwa 15 Minuten davor und danach, als Tagesfenster rund eine Stunde.${extra ? '\n' + extra : ''}` };
+    evStore[id] = e; return e;
+  }
+  const calBtns = e => `<span class="calbtns"><button type="button" class="linkbtn" data-ics="${esc(e.id)}" title="Als .ics-Datei für Apple, Outlook und Google">+ Kalender</button> <a class="linkbtn" href="${esc(CAL().googleUrl(e))}" target="_blank" rel="noopener">Google</a></span>`;
+  function bindCal(scope) {
+    scope.querySelectorAll('[data-ics]').forEach(b => b.addEventListener('click', () => {
+      const e = evStore[b.dataset.ics]; if (!e) return;
+      CAL().download(`${e.summary.replace(/[^\wäöüÄÖÜ]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)}.ics`, CAL().eventsIcs([e], 'Horoskop'));
+    }));
+  }
+  function transitTable(hits, f, tz, withYear) {
+    if (!hits.length) return '<p class="muted">In diesem Zeitraum wird kein Aspekt exakt.</p>';
+    const rows = hits.map(h => {
+      const e = hitEvent(h, f, tz);
+      return `<tr><td class="num">${esc(withYear ? f.dateY(h.when) : f.date(h.when))}</td><td class="num"><strong>${f.time(h.when)}</strong></td>
+        <td><span class="sym" style="color:var(--pl-${h.t.key})">${g(h.t.sym)}</span> <span class="chip ${h.value >= 0 ? 'pos' : 'neg'}">${esc(h.t.name)} ${esc(h.asp.name)} ${h.n.kind === 'sens' ? `<span class="sym-gold">${g(h.n.sym)}</span> ` : ''}${esc(h.n.kind === 'sens' ? h.n.name : 'Radix-' + h.n.name)}</span>${h.retro ? ' <span class="small muted">℞</span>' : ''}${h.n.kind === 'sens' ? `<br><span class="small muted">${C.fmtDeg(h.n.lon)} ${esc(h.n.sp.pos.sign.name)}, ${h.n.sp.house}. Haus</span>` : ''}</td>
+        <td class="small">${esc(LASTS[h.t.key])}</td><td class="small">${esc(hitMeaning(h))}</td><td>${calBtns(e)}</td></tr>`;
+    }).join('');
+    return `<div class="tbl-wrap tbl-scroll"><table class="tbl"><thead><tr><th>Tag</th><th>Exakt</th><th>Ereignis</th><th>Spürbar</th><th>Bedeutung</th><th>Kalender</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  // Matrix: Zeilen = Ziel und Achse, Spalten = Tage
+  function angleMatrix(list, dayKeys, dayLabels, f) {
+    const groups = new Map();
+    list.forEach(a => { const k = a.target.rowKey + '|' + a.angle; if (!groups.has(k)) groups.set(k, { a, byDay: {} }); (groups.get(k).byDay[f.dayKey(a.when)] = groups.get(k).byDay[f.dayKey(a.when)] || []).push(a); });
+    const rows = [...groups.values()].map(gr => `<tr><td>${gr.a.target.label}</td><td class="num">${gr.a.angle}</td>${dayKeys.map(k => `<td class="num">${(gr.byDay[k] || []).map(a => f.time(a.when)).join('<br>') || '–'}</td>`).join('')}</tr>`).join('');
+    return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Punkt</th><th>Achse</th>${dayLabels.map(l => `<th>${l}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+  function worldLineTargets(P, places) {
+    const seen = new Set(), out = [];
+    const add = (city, country, lat, lon, key, kind) => {
+      const k = city + key + kind; if (seen.has(k) || key === 'Node') return; seen.add(k);
+      const pl = P.natal.byKey[key];
+      out.push({ city, country, lat, lon, key, kind, target: { key, name: pl.name, sym: pl.sym, lon: pl.lon, line: kind, city, rowKey: k, label: `<strong>${esc(city)}</strong> <span class="small muted">${esc(country)}</span><br><span class="sym" style="color:var(--pl-${key})">${g(pl.sym)}</span> ${esc(pl.name)}-${kind}-Linie`, angles: [kind] } });
+    };
+    places.slice(0, 3).forEach(x => add(x.city, x.country, x.lat, x.lon, x.line.key, x.line.kind));
+    crossingsFor(P).filter(x => x.city).forEach(x => { [x.a, x.b].forEach(l => add(x.city.c[0], x.city.c[1], x.city.c[2], x.city.c[3], l.key, l.kind)); });
+    return out;
+  }
+  const KEY_SENS = ['Fortuna', 'Success', 'Love', 'Career', 'Spirit', 'Marriage', 'Vertex', 'Eros', 'Victory', 'Exaltation'];
+
+  function weekTimingSection(P, W) {
+    const tz = TM().userTz(P), f = TM().fmt(tz);
+    const d0 = W.days[0], d7 = W.days[6];
+    const t0 = C.localToUtc(d0.y, d0.m, d0.d, 0, 0, tz).date.getTime();
+    const e7 = new Date(Date.UTC(d7.y, d7.m - 1, d7.d) + C.DAY);
+    const t1 = C.localToUtc(e7.getUTCFullYear(), e7.getUTCMonth() + 1, e7.getUTCDate(), 0, 0, tz).date.getTime();
+    const planets = C.PLANETS.filter(p => p.key !== 'Node').map(p => p.key);
+    const natalHits = TM().transitTimes(planets, natalTargets(P), t0, t1);
+    const sensHits = P.sens ? TM().transitTimes(planets.filter(k => k !== 'Moon'), sensTargets(P), t0, t1) : [];
+    const hits = natalHits.concat(sensHits).sort((a, b) => a.when - b.when);
+    const dayKeys = W.days.map(d => `${d.y}-${pad(d.m)}-${pad(d.d)}`);
+    const dayLabels = W.days.map(d => `${shortWd(d.wd)} ${d.d}.${d.m}.`);
+    const place = timePlace || { lat: P.b.lat, lon: P.b.lon, label: input && input.placeLabel ? input.placeLabel : 'Geburtsort' };
+    let axisHtml = '<p class="muted">Ohne Geburtszeit gibt es keine sensitiven Punkte.</p>', axisEvents = [];
+    if (P.sens) {
+      const tg = sensTargets(P).map(s => ({ ...s, rowKey: s.key, label: `<span class="sym-gold">${g(s.sym)}</span> ${esc(s.name)} <span class="small muted">${C.fmtDeg(s.lon)} ${esc(s.sp.pos.sign.name)}</span>`, angles: ['AC', 'MC'] }));
+      const ax = TM().angleTimes(tg, place.lat, place.lon, t0, t1);
+      axisEvents = ax.map(a => angleEvent(a, f, tz, place.label, T.sensitive[a.target.key][0]));
+      const main = ax.filter(a => KEY_SENS.includes(a.target.key)), rest = ax.filter(a => !KEY_SENS.includes(a.target.key));
+      axisHtml = angleMatrix(main, dayKeys, dayLabels, f) + (rest.length ? `<details class="more"><summary>Alle übrigen sensitiven Punkte anzeigen</summary>${angleMatrix(rest, dayKeys, dayLabels, f)}</details>` : '');
+    }
+    const wl = worldLineTargets(P, W.optimal.places || []);
+    let wlEvents = [], wlList = [];
+    wl.forEach(x => { const r = TM().angleTimes([x.target], x.lat, x.lon, t0, t1); wlList = wlList.concat(r); wlEvents = wlEvents.concat(r.map(a => angleEvent(a, f, tz, x.city, `${T.acgPlanet[x.key]} wirken dort ${T.acgAngle[x.kind]}.`))); });
+    const hitEvents = hits.map(h => hitEvent(h, f, tz));
+    const html = `<section class="sheet" id="timing">
+      <div class="sheet-head"><div><span class="eyebrow">Exakte Zeitpunkte · Zeiten in ${esc(tz)}</span><h2>Wann es genau am stärksten ist</h2></div>
+        <div class="cal-export"><button type="button" class="btn ghost" id="cal-all">Alle exakten Transite in Kalender</button><span class="small muted">${hits.length} Termine mit Uhrzeit, dazu die Tageswerte</span></div></div>
+      <p class="muted" style="max-width:76ch">Ein Transit wirkt nicht nur in einer Minute: Er baut sich auf, ist zum exakten Zeitpunkt am stärksten und klingt wieder ab. Wie lange, hängt vom Planeten ab (Spalte „Spürbar“). Innerhalb des Tages gibt es zusätzlich einen genauen Auslöser: Wenn der laufende Aszendent oder das MC deines Aufenthaltsortes über einen sensitiven Punkt oder eine deiner Linien läuft. Das geschieht jeden Tag einmal und dauert nur kurz, am stärksten etwa 15 Minuten davor und danach. Auf diese Zeit kannst du dich gezielt fokussieren.</p>
+      <h3>Transite, die diese Woche exakt werden</h3>
+      ${transitTable(hits, f, tz, false)}
+      <h3 style="margin-top:18px">Tageszeiten: Aszendent und MC über deinen sensitiven Punkten</h3>
+      <div class="timeplace"><div class="field"><label for="f-tplace">Aufenthaltsort für die Tageszeiten</label><input id="f-tplace" list="dl-places" autocomplete="off" value="${esc(place.label.split(',')[0])}"></div><button type="button" class="btn ghost" id="tplace-btn">Ort übernehmen</button><button type="button" class="btn ghost" id="cal-axis">Achsenzeiten in Kalender</button><span class="small muted" id="tplace-err" role="alert"></span></div>
+      <p class="small muted">Jede Zeit ist der Moment, in dem der Punkt in ${esc(place.label)} exakt am Aszendenten aufgeht (AC) oder am höchsten steht (MC).</p>
+      ${axisHtml}
+      <h3 style="margin-top:18px">Weltlinien: wann deine Linien an diesen Orten täglich exakt sind</h3>
+      <p class="small muted" style="max-width:76ch">Für die Glücksorte der Woche und die Städte an deinen Linienkreuzungen: Um diese Uhrzeit (deine Ortszeit) steht dort die laufende Achse genau auf dem Grad deines Radix-Planeten. Wer dort ist, erlebt das Thema der Linie in dieser Zeit am deutlichsten. Planst du dort ein Gespräch, einen Termin oder eine Ankunft, ist das der beste Zeitpunkt.</p>
+      ${wl.length ? angleMatrix(wlList, dayKeys, dayLabels, f) + '<div style="margin-top:8px"><button type="button" class="btn ghost" id="cal-wl">Weltlinien-Zeiten in Kalender</button></div>' : '<p class="muted">Keine Linienorte in Reichweite.</p>'}
+    </section>`;
+    const bind = () => {
+      const box = $('#timing'); bindCal(box);
+      const name = `${F.fmtDate(d0.date)} bis ${F.fmtDateY(d7.date)}`;
+      const fn = s => `horoskop-${s}-${dayKeys[0]}.ics`;
+      $('#cal-all').addEventListener('click', () => CAL().download(fn('woche'), CAL().eventsIcs(CAL().dayEvents(P, W).concat(hitEvents), 'Horoskop ' + name)));
+      $('#cal-axis').addEventListener('click', () => CAL().download(fn('achsen'), CAL().eventsIcs(axisEvents, 'Achsenzeiten ' + name)));
+      const wlb = $('#cal-wl'); if (wlb) wlb.addEventListener('click', () => CAL().download(fn('weltlinien'), CAL().eventsIcs(wlEvents, 'Weltlinien ' + name)));
+      $('#tplace-btn').addEventListener('click', async () => {
+        try { const loc = await geocode($('#f-tplace').value.trim(), '', '', ''); timePlace = loc; store.set('astro-timeplace', loc); renderWeek(); document.getElementById('timing').scrollIntoView({ block: 'start' }); }
+        catch (e) { $('#tplace-err').textContent = e.message.replace('Geburtsort', 'Ort'); }
+      });
+    };
+    return { html, bind, hitEvents };
+  }
+
+  function longTimingSection(P, L) {
+    const tz = TM().userTz(P), f = TM().fmt(tz);
+    const t0 = C.localToUtc(L.start.getUTCFullYear(), L.start.getUTCMonth() + 1, 1, 0, 0, tz).date.getTime();
+    const e = new Date(L.end.getTime() + C.DAY);
+    const t1 = C.localToUtc(e.getUTCFullYear(), e.getUTCMonth() + 1, e.getUTCDate(), 0, 0, tz).date.getTime();
+    const slow = ['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
+    const natal = TM().transitTimes(slow, natalTargets(P, ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'ASC', 'MC']), t0, t1);
+    const sens = P.sens ? TM().transitTimes(slow, sensTargets(P), t0, t1) : [];
+    const sunOnSens = P.sens ? TM().transitTimes(['Sun'], sensTargets(P), t0, t1, { aspects: ['conj'] }) : [];
+    const all = natal.concat(sens).sort((a, b) => a.when - b.when);
+    const evs = all.concat(sunOnSens).map(h => hitEvent(h, f, tz));
+    const html = `<section class="sheet" id="ltiming">
+      <div class="sheet-head"><div><span class="eyebrow">Exakte Zeitpunkte · Zeiten in ${esc(tz)}</span><h2>Wann die grossen Transite genau exakt sind</h2></div>
+        <div class="cal-export"><button type="button" class="btn ghost" id="lcal-all">Alle in Kalender übernehmen</button><span class="small muted">${evs.length} Termine mit Datum und Uhrzeit</span></div></div>
+      <p class="muted" style="max-width:76ch">Die langsamen Planeten wirken über Wochen und Monate. Am exakten Zeitpunkt ist der Transit am stärksten; bei Rückläufigkeit (℞) wird derselbe Aspekt oft dreimal exakt. Die Tabelle zeigt Jupiter, Saturn, Uranus, Neptun und Pluto auf deinen Radix-Planeten, Achsen und ${P.sens ? P.sens.list.length : 0} sensitiven Punkten.</p>
+      <h3>Langsame Planeten auf Radix und sensitiven Punkten</h3>
+      ${transitTable(all, f, tz, true)}
+      ${sunOnSens.length ? `<h3 style="margin-top:18px">Die Sonne auf deinen sensitiven Punkten</h3><p class="small muted">Einmal im Jahr läuft die Sonne über jeden Punkt. Dieser Tag ist der Jahrestag seines Themas, gut für Vorhaben in genau diesem Bereich.</p>${transitTable(sunOnSens, f, tz, true)}` : ''}
+    </section>`;
+    const bind = () => {
+      bindCal($('#ltiming'));
+      $('#lcal-all').addEventListener('click', () => CAL().download(`horoskop-transite-${L.start.getUTCFullYear()}-${pad(L.start.getUTCMonth() + 1)}.ics`, CAL().eventsIcs(evs, `Horoskop ${F.fmtDateY(L.start)} bis ${F.fmtDateY(L.end)}`)));
+    };
+    return { html, bind };
+  }
+
   /* ---------- Wochenseite ---------- */
   function renderWeek() {
     const P = profile;
@@ -462,6 +616,8 @@
         </div>
       </div>`;
     }).join('');
+    evStore = {};
+    const TS = weekTimingSection(P, W);
     $('#page-woche').innerHTML = `
       <section class="sheet" id="week">
         <div class="sheet-head"><div><span class="eyebrow">Wochenprognose · ${F.fmtDate(first)} bis ${F.fmtDateY(last)}</span><h2>${esc(P.b.name ? P.b.name.split(' ')[0] + ', deine Woche' : 'Deine Woche')}</h2></div>
@@ -478,23 +634,21 @@
       </section>
       <section class="sheet" id="days">
         <div class="sheet-head"><div><span class="eyebrow">Tag für Tag</span><h2>Die sieben Tage im Einzelnen</h2></div>
-          <div class="cal-export"><button type="button" class="btn ghost" id="cal-btn">In Kalender übernehmen</button><span class="small muted">Alle exakten Transite mit Uhrzeit, für Google, Apple und Outlook</span></div></div>
+          <div class="cal-export"><button type="button" class="btn ghost" id="cal-btn">In Kalender übernehmen</button><span class="small muted">Alle exakten Transite mit Uhrzeit, für Google, Apple und Outlook. Einzeltermine unten bei den exakten Zeitpunkten.</span></div></div>
         <div class="days">${days}</div>
       </section>
+      ${TS.html}
       ${westernSection(P)}
       ${sensitiveSection(P)}
       ${chineseSection(P)}
       ${numerologySection(P, ws[0], ws[1])}
       ${mapSection(P, o.places, 'w')}`;
     bindMap(P, o.places, 'w');
+    TS.bind();
     $('#cal-btn').addEventListener('click', () => {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || P.b.tz;
-      const ics = window.CalendarExport.weekIcs(P, W, tz);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
-      a.download = `horoskop-${ws.map(n => String(n).padStart(2, '0')).join('-')}.ics`;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      const tz = window.Timing.userTz(P);
+      const ics = window.CalendarExport.eventsIcs(window.CalendarExport.dayEvents(P, W).concat(TS.hitEvents), `Horoskop ${F.fmtDate(W.days[0].date)} bis ${F.fmtDateY(W.days[6].date)}`);
+      window.CalendarExport.download(`horoskop-${ws.map(n => String(n).padStart(2, '0')).join('-')}.ics`, ics); void tz;
     });
   }
 
@@ -526,6 +680,8 @@
     box.innerHTML = `<section class="sheet"><div class="loading">Berechne ${longMonths} Monate…</div></section>`;
     setTimeout(() => {
       const L = F.longForecast(P, longStart[0], longStart[1], longMonths);
+      evStore = {};
+      const LT = longTimingSection(P, L);
       const chart = barChart(L.months.map(m => ({ v: m.total, l1: m.name.slice(0, 3), l2: L.months.indexOf(m) === 0 || m.m === 1 ? String(m.y) : '', title: `${m.name} ${m.y}` })), { w: 900, label: 'Monatswerte' });
       const avg = Math.round(L.months.reduce((a, m) => a + m.total, 0) / L.months.length);
       const py = C.personalYear(P.b, longStart[0]);
@@ -577,10 +733,12 @@
         <section class="sheet"><div class="sheet-head"><div><span class="eyebrow">Langsame Planeten</span><h2>Die grossen Transite</h2></div></div>
           <p class="muted small">Balken zeigen, wann Jupiter, Saturn, Uranus, Neptun und Pluto einen deiner Geburtspunkte berühren (grün fördernd, rot fordernd). Punkte markieren die exakten Tage.</p>
           <div class="tbl-wrap">${timeline(L)}</div></section>
-        ${L.sensPeriods.length ? `<section class="sheet"><div class="sheet-head"><div><span class="eyebrow">Sensitive Punkte</span><h2>Jupiter und Saturn auf deinen sensitiven Punkten</h2></div></div><p class="muted small">Jupiter öffnet das Thema des Punktes und bringt Chancen, Saturn verlangt Arbeit und macht es dauerhaft.</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Zeitraum</th><th>Transit</th><th>Punkt</th><th>Bedeutung</th></tr></thead><tbody>${L.sensPeriods.map(p => `<tr><td class="num">${F.fmtDateY(p.start)} bis ${F.fmtDateY(p.end)}<br><span class="small muted">exakt ${F.fmtDateY(p.exact)}</span></td><td>${esc(p.t.name)}</td><td><span class="sym-gold">${g(p.sp.sym)}</span> ${esc(p.sp.name)} (${esc(p.sp.pos.sign.name)}, ${p.sp.house}. Haus)</td><td>${esc(T.sensitive[p.sp.key][0])} ${p.t.key === 'Jupiter' ? 'Jetzt wächst hier etwas.' : 'Jetzt wird hier Verantwortung verlangt.'}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
+        ${L.sensPeriods.length ? `<section class="sheet"><div class="sheet-head"><div><span class="eyebrow">Sensitive Punkte</span><h2>Jupiter und Saturn auf deinen sensitiven Punkten</h2></div></div><p class="muted small">Jupiter öffnet das Thema des Punktes und bringt Chancen, Saturn verlangt Arbeit und macht es dauerhaft.</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Zeitraum</th><th>Transit</th><th>Punkt</th><th>Bedeutung</th></tr></thead><tbody>${L.sensPeriods.map(p => `<tr><td class="num">${F.fmtDateY(p.start)} bis ${F.fmtDateY(p.end)}<br><span class="small muted">exakt ${F.fmtDateY(p.exact)}, Uhrzeit unten</span></td><td>${esc(p.t.name)}</td><td><span class="sym-gold">${g(p.sp.sym)}</span> ${esc(p.sp.name)} (${esc(p.sp.pos.sign.name)}, ${p.sp.house}. Haus)</td><td>${esc(T.sensitive[p.sp.key][0])} ${p.t.key === 'Jupiter' ? 'Jetzt wächst hier etwas.' : 'Jetzt wird hier Verantwortung verlangt.'}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
+        ${LT.html}
         ${L.eclipses.length ? `<section class="sheet"><div class="sheet-head"><div><span class="eyebrow">Finsternisse</span><h2>Wendepunkte im Zeitraum</h2></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Datum</th><th>Art</th><th>Zeichen</th><th>Haus</th><th>Trifft</th></tr></thead><tbody>${ecl}</tbody></table></div></section>` : ''}
         ${mapSection(P, [], 'l')}`;
       bindMap(P, [], 'l');
+      LT.bind();
       box.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { longMonths = +b.dataset.m; store.set('astro-long', longMonths); renderLong(); }));
       $('#f-start').addEventListener('change', e => { const [y, m] = e.target.value.split('-').map(Number); if (y && m) { longStart = [y, m]; renderLong(); } });
     }, 30);
@@ -591,6 +749,7 @@
     fillDatalists();
     $('#f-week').value = isoDate(nextMonday());
     longMonths = store.get('astro-long') || 12;
+    timePlace = store.get('astro-timeplace') || null;
     $('#f-notime').addEventListener('change', e => { $('#f-time').disabled = e.target.checked; });
     $('#f-week').addEventListener('change', () => { if (profile) renderWeek(); });
     $('#birth-form').addEventListener('submit', async e => {
